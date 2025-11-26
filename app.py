@@ -14,7 +14,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from wordcloud import WordCloud
 
-# --- 1. Page Configuration & Custom CSS ---
+# --- 1. Page Configuration ---
 st.set_page_config(
     page_title="NarrativeNexus | AI Analysis",
     page_icon="✨",
@@ -22,75 +22,104 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for a "Decorated" Look
+# --- 2. Dark Mode & Decorated CSS ---
 st.markdown("""
     <style>
-    /* Global Font & Background */
+    /* --- GLOBAL SETTINGS --- */
     .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        font-family: 'Helvetica Neue', sans-serif;
+        /* Deep Midnight Gradient Background */
+        background: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);
+        color: #e0e0e0;
     }
     
-    /* Card-like containers */
-    .stMarkdown, .stBlock {
-        border-radius: 10px;
-    }
-    
-    /* Header Styling */
+    /* --- TYPOGRAPHY --- */
     h1 {
-        color: #2c3e50;
-        text-align: center;
-        font-weight: 800;
-        background: -webkit-linear-gradient(#1A2980, #26D0CE);
+        font-weight: 900;
+        /* Neon Gradient Text */
+        background: -webkit-linear-gradient(0deg, #00d2ff, #3a7bd5);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 10px;
+        text-shadow: 0px 0px 10px rgba(0, 210, 255, 0.3);
     }
     h2, h3 {
-        color: #34495e;
+        color: #ffffff !important;
+        font-family: 'Segoe UI', sans-serif;
     }
-    
-    /* Custom container for file results */
-    .file-card {
-        background-color: white;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-        border-left: 5px solid #26D0CE;
+    p, label, .stMarkdown {
+        color: #d1d1d1 !important;
     }
 
-    /* Sidebar styling */
+    /* --- SIDEBAR STYLING --- */
     section[data-testid="stSidebar"] {
-        background-color: #f8f9fa;
-        border-right: 1px solid #e0e0e0;
+        background-color: #0a1117; /* Very dark blue/black */
+        border-right: 1px solid #333;
+    }
+    
+    /* --- METRIC CARDS --- */
+    div[data-testid="stMetric"] {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+    }
+    div[data-testid="stMetricLabel"] {
+        color: #00d2ff !important;
+    }
+    div[data-testid="stMetricValue"] {
+        color: #ffffff !important;
+    }
+
+    /* --- FILE UPLOADER --- */
+    div[data-testid="stFileUploader"] {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 20px;
+        border-radius: 15px;
+        border: 1px dashed #4a4a4a;
+    }
+
+    /* --- TABS --- */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 10px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: rgba(255,255,255,0.05);
+        border-radius: 5px;
+        color: white;
+        border: none;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: rgba(0, 210, 255, 0.2) !important;
+        border-bottom: 2px solid #00d2ff;
+        color: #fff !important;
+    }
+    
+    /* --- EXPANDER --- */
+    .streamlit-expanderHeader {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: white !important;
+        border-radius: 5px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. Caching Resources ---
+# --- 3. Caching Resources ---
 @st.cache_resource
 def load_resources():
     nltk.download('wordnet')
     nltk.download('omw-1.4')
     nltk.download('punkt')
     nltk.download('stopwords')
-    # Load summarizer (lightweight version)
     return pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
 
 summarizer = load_resources()
 lemmatizer = WordNetLemmatizer()
 
-# --- 3. Processing Functions ---
+# --- 4. Processing Functions ---
 
 def preprocess_for_gensim(text):
-    """
-    Applies the preprocessing logic from your notebook:
-    - simple_preprocess (tokenize & de-accent)
-    - Remove Stopwords
-    - Remove short words (< 3 chars)
-    - Lemmatize
-    """
     tokens = simple_preprocess(text, deacc=True)
     clean_tokens = [
         lemmatizer.lemmatize(token) 
@@ -100,16 +129,8 @@ def preprocess_for_gensim(text):
     return clean_tokens
 
 def run_gensim_lda(clean_docs_list, num_topics=5):
-    """
-    Runs the LDA model using Gensim.
-    """
-    # Create Dictionary
     id2word = corpora.Dictionary(clean_docs_list)
-    
-    # Create Corpus (Term Document Frequency)
     corpus = [id2word.doc2bow(text) for text in clean_docs_list]
-    
-    # Train Model
     lda_model = gensim.models.LdaModel(
         corpus=corpus,
         id2word=id2word,
@@ -121,7 +142,6 @@ def run_gensim_lda(clean_docs_list, num_topics=5):
         alpha='auto',
         per_word_topics=True
     )
-    
     return lda_model, corpus, id2word
 
 def get_sentiment(text):
@@ -132,20 +152,20 @@ def get_sentiment(text):
     else: sentiment = 'Neutral'
     return polarity, sentiment
 
-# --- 4. Main Application Logic ---
+# --- 5. Main Application Logic ---
 
 # Header Section
 st.title("✨ NarrativeNexus AI")
-st.markdown("#### Advanced NLP Pipeline: Topic Modeling, Sentiment & Summarization")
+st.markdown("<h4 style='text-align: center; color: #b0c4de;'>Dark Mode NLP Pipeline: Topic Modeling, Sentiment & Summarization</h4>", unsafe_allow_html=True)
 st.markdown("---")
 
 # Sidebar
 with st.sidebar:
     st.header("⚙️ Configuration")
-    num_topics = st.slider("Number of LDA Topics", 2, 10, 3)
+    num_topics = st.slider("Number of LDA Topics", 2, 10, 4)
     st.info("Upload your .txt files to generate insights.")
     st.markdown("---")
-    st.caption("Built with Streamlit & Gensim")
+    st.caption("Powered by Streamlit & Gensim")
 
 # File Uploader
 uploaded_files = st.file_uploader("📂 Upload Dataset (.txt)", type="txt", accept_multiple_files=True)
@@ -160,7 +180,6 @@ if uploaded_files:
         text = file.getvalue().decode("utf-8")
         raw_texts.append(text)
         filenames.append(file.name)
-        # Preprocess for Gensim (list of tokens)
         processed_docs_for_lda.append(preprocess_for_gensim(text))
 
     # --- GLOBAL ANALYSIS: TOPIC MODELING ---
@@ -171,10 +190,9 @@ if uploaded_files:
         try:
             lda_model, corpus, id2word = run_gensim_lda(processed_docs_for_lda, num_topics=num_topics)
             
-            # Display Topics in Columns
             cols = st.columns(num_topics)
             for idx, topic in lda_model.print_topics(-1):
-                # Parse string '0.05*"word" + ...'
+                # Parse string data
                 topic_clean = topic.split('+')
                 words = []
                 weights = []
@@ -185,12 +203,27 @@ if uploaded_files:
                 
                 # Visualize Topic
                 with cols[idx % num_topics]:
+                    # Helper to make container background transparent/dark-friendly
                     with st.container(border=True):
-                        st.markdown(f"**Topic {idx+1}**")
+                        st.markdown(f"<h4 style='text-align:center; color: #00d2ff;'>Topic {idx+1}</h4>", unsafe_allow_html=True)
+                        
+                        # Updated Plotly Chart for Dark Mode
                         fig = px.bar(x=weights[:5], y=words[:5], orientation='h', 
                                      labels={'x':'Weight', 'y':''},
-                                     color=weights[:5], color_continuous_scale='Bluyl')
-                        fig.update_layout(showlegend=False, height=200, margin=dict(l=0,r=0,t=0,b=0), yaxis={'categoryorder':'total ascending'})
+                                     color=weights[:5], 
+                                     color_continuous_scale='Tealgrn') # 'Tealgrn' looks good on dark
+                        
+                        fig.update_layout(
+                            showlegend=False, 
+                            height=200, 
+                            margin=dict(l=0,r=0,t=0,b=0), 
+                            yaxis={'categoryorder':'total ascending'},
+                            paper_bgcolor='rgba(0,0,0,0)', # Transparent background
+                            plot_bgcolor='rgba(0,0,0,0)',  # Transparent plot area
+                            font=dict(color="white"),       # White text for axes
+                            xaxis=dict(showgrid=False),
+                            coloraxis_showscale=False       # Hide color bar
+                        )
                         st.plotly_chart(fig, use_container_width=True)
                         
         except Exception as e:
@@ -201,12 +234,10 @@ if uploaded_files:
     # --- INDIVIDUAL FILE ANALYSIS ---
     st.subheader("📄 Document Insights")
     
-    # Create tabs for cleaner navigation
     tabs = st.tabs([f"{name}" for name in filenames])
 
     for i, tab in enumerate(tabs):
         with tab:
-            # Layout: 2 Columns
             col_left, col_right = st.columns([1.5, 1])
             
             # Analysis Logic
@@ -216,56 +247,69 @@ if uploaded_files:
                 st.markdown("### 📝 Summary")
                 with st.spinner("Summarizing..."):
                     try:
-                        # Truncate for speed/safety
                         summary_res = summarizer(raw_texts[i][:1500], max_length=130, min_length=30, do_sample=False)
-                        st.info(summary_res[0]['summary_text'])
+                        # Custom styled summary box
+                        st.markdown(f"""
+                        <div style="background-color: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; border-left: 5px solid #00d2ff;">
+                            <p style="color: white !important; margin: 0;">{summary_res[0]['summary_text']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
                     except:
                         st.warning("Text too short or complex to summarize.")
 
-                st.markdown("### 📜 Raw Text")
-                with st.expander("Click to read full text"):
+                st.markdown("<br>", unsafe_allow_html=True)
+                with st.expander("📜 Read Full Source Text"):
                     st.write(raw_texts[i])
 
             with col_right:
                 st.markdown("### 📊 Sentiment")
                 
-                # Color coding for sentiment
-                color = "green" if polarity > 0.1 else "red" if polarity < -0.1 else "gray"
+                # Color coding
+                color = "#00d2ff" if polarity > 0.1 else "#ff4b4b" if polarity < -0.1 else "#ffa500"
                 
-                # Gauge Chart
+                # Gauge Chart (Dark Mode Optimized)
                 fig_gauge = go.Figure(go.Indicator(
-                    mode = "gauge+number+delta",
+                    mode = "gauge+number",
                     value = polarity,
                     domain = {'x': [0, 1], 'y': [0, 1]},
-                    title = {'text': f"<b>{sentiment_label}</b>", 'font': {'size': 24}},
-                    delta = {'reference': 0},
+                    title = {'text': f"<span style='color:white'>{sentiment_label}</span>", 'font': {'size': 24}},
                     gauge = {
-                        'axis': {'range': [-1, 1]},
+                        'axis': {'range': [-1, 1], 'tickcolor': "white", 'tickwidth': 2},
                         'bar': {'color': color},
-                        'steps': [
-                            {'range': [-1, -0.1], 'color': "mistyrose"},
-                            {'range': [-0.1, 0.1], 'color': "whitesmoke"},
-                            {'range': [0.1, 1], 'color': "honeydew"}],
+                        'bgcolor': "rgba(255,255,255,0.1)",
+                        'borderwidth': 2,
+                        'bordercolor': "white",
                     }
                 ))
-                fig_gauge.update_layout(height=250, margin=dict(l=30,r=30,t=50,b=30))
+                fig_gauge.update_layout(
+                    height=220, 
+                    margin=dict(l=30,r=30,t=50,b=30),
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    font={'color': "white"}
+                )
                 st.plotly_chart(fig_gauge, use_container_width=True)
 
+                # Word Cloud (Dark Mode Optimized)
                 st.markdown("### ☁️ Word Cloud")
                 try:
-                    wc = WordCloud(background_color='white', width=400, height=300, colormap='viridis').generate(raw_texts[i])
+                    # Black background wordcloud to blend with dark theme
+                    wc = WordCloud(background_color='#0f2027', width=400, height=250, colormap='GnBu').generate(raw_texts[i])
                     fig_wc, ax = plt.subplots(figsize=(5, 3))
                     ax.imshow(wc, interpolation='bilinear')
                     ax.axis('off')
+                    # Make matplotlib figure transparent
+                    fig_wc.patch.set_alpha(0) 
                     st.pyplot(fig_wc)
                 except:
                     st.caption("Insufficient data for Word Cloud")
 
 else:
-    # Welcome Screen / Empty State
+    # Empty State Decoration
     st.markdown("""
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; background-color: white; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        <h2 style="color: #2c3e50;">Welcome to NarrativeNexus</h2>
-        <p style="color: gray; font-size: 1.2rem;">Upload your text documents on the left to unlock AI-powered insights.</p>
+    <br><br>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.7;">
+        <h1 style="font-size: 4rem;">📂</h1>
+        <h3 style="color: white;">Awaiting Data...</h3>
+        <p style="color: gray;">Upload text files to the sidebar to activate the Neural Engine.</p>
     </div>
     """, unsafe_allow_html=True)
