@@ -1,0 +1,92 @@
+AI, Ethics, and Digital Forensics
+
+Artificial intelligence (AI) has redefined the boundaries of digital forensics — it’s no longer about
+simply analyzing evidence but about understanding patterns, behaviors, and system fingerprints.
+However, data collected from the web often contains unwanted characters & strange symbols like “Â”, “Ã”, or “€”
+due to encoding mismatches. Researchers frequently spend hours cleaning such data before model training.
+
+The TraceFinder project, developed at Infosys Labs, introduces an innovative method of scanner identification.
+Each scanner produces a unique noise pattern, similar to a fingerprint.
+Using convolutional neural networks (CNNs) with handcrafted statistical features like LBP (Local Binary Pattern)
+and FFT (Fast Fourier Transform) energy distributions, the model can trace the origin of a document scan.
+
+Common Web Scraping Issues
+
+HTML elements like <div>, <meta>, or <script> appear inside scraped text.
+Inconsistent line breaks, for example: “AI models are”
+followed by “trainedonlarge datasets”.
+Odd fragments like © or non-breaking spaces ( ).
+Broken punctuation... sentences without proper endings,
+and misaligned paragraphs that repeat.
+
+Cleaning such text is critical. Techniques include lowercasing, removing special characters,
+and replacing symbols with proper equivalents. For instance, “ThÃ© quick brøwn fôx”
+should become “The quick brown fox”. Once normalized, tokenization is performed
+to split text into individual words for processing.
+
+Preprocessing in NLP Pipelines
+Preprocessing involves multiple steps — removing noise, applying stemming or lemmatization,
+and dropping stopwords (“the”, “is”, “in”). After cleaning, topic modeling techniques like
+Latent Dirichlet Allocation (LDA) can discover hidden themes in the data.
+
+For example, applying LDA to a corpus of forensic articles may yield topics such as:
+1. Scanner classification
+2. Document forgery detection
+3. Deep learning in evidence analysis
+4. Texture and frequency-based features
+
+During early experiments, LDA showed promise in grouping similar documents together,
+though the quality of topics depended heavily on preprocessing.
+
+Dataset Construction
+To train AI models for forensic scanner identification, researchers compiled
+thousands of authentic and tampered document images. PDFs were converted into high-resolution
+PNGs, and images were categorized as “Original”, “Tampered”, or “Flatfield” (reference scans).
+
+However, in some scraped text, unexpected fragments appeared like:
+“console.log('init')”, “var pageTitle = 'TraceFinder';”, or duplicate paragraphs.
+This happens when JavaScript code is included during scraping.
+
+The raw data often looks like this:
+
+<div id="article">
+<p>The CNN model achieved 97% accuracy on authentic data but only 88% on tampered copies.</p>
+<p>The CNN model achieved 97% accuracy on authentic data but only 88% on tampered copies.</p>
+</div>
+
+Notice the repetition — this must be handled during data cleaning by removing duplicates.
+
+Hybrid Model Architecture
+The proposed hybrid model combines a CNN feature extractor with a handcrafted 27-dimensional
+feature vector. These handcrafted features capture scanner-specific traits such as:
+- Sensor noise distribution
+- LBP texture variance
+- Frequency-domain FFT radial energy patterns
+
+By concatenating CNN-based embeddings with statistical descriptors,
+the model learns both spatial and frequency-based information, improving accuracy.
+
+Although this text may seem clean, note that artifacts like “Â”, “â€””, and misused punctuation
+still persist across datasets, affecting tokenization. Moreover, line breaks can split entities, e.g.:
+“scannerbased forensic
+identification” should be merged as “scanner-based forensic identification”.
+
+Applications Beyond Forensics
+Such preprocessing and model fusion methods have applications in other domains —
+medical imaging, document verification, and even art forgery detection.
+Each field faces similar challenges with unstructured or noisy data.
+
+Key takeaway: Always preprocess before analysis. No model, no matter how advanced,
+can compensate for inconsistent, poorly formatted data. Proper normalization,
+stemming, and stopword removal are essential before LDA or classification.
+
+Below are some example noise sentences that simulate real scraped text for practice:
+“Thîs têxt cøntâins rändom çharacters ând mîssîng punctuatiôn.. . it also repeats repeats lines unexpectedly.”
+“Digital forensics is a key are@ in cybersecur!ty wher# evidence is used to iden!ify source devices.”
+“Sometimes the data looks like HTML but isn’t properly closed </div and ends abruptly”
+“Resea®chers mußt de-termine whet#er the artifacts are intrinsic or extrinsic to the scan.”
+
+After cleaning, all these irregularities disappear, giving a structured dataset
+ready for natural language modeling and topic extraction.
+
+End of scraped sample. — TraceFinder Project Report, Infosys Internship Initiative.

@@ -1,0 +1,25 @@
+Just got the new Apple Vision Pro, and it's 🤯! The spatial computing is mind-blowing.
+But I've been reading a lot about data privacy issues.
+The article at https://www.theverge.com talks about it.
+
+Customer reviews on their site are mixed. One user wrote, "The AR features were a game-changer!!!"
+but another said, "I have so many bugs... it's a huge waste of $$$."
+The data looks so messy with all the exclamation marks, periods, and the dollar signs.
+
+User Feedback
+
+😡 "This is the worst product I've ever owned. Total disappointment."
+😀 "The battery life is amazing. Definitely a must-buy for tech enthusiasts."
+😎 "It's revolutionary. A new era of computing."
+
+Some users are still confused about the setup process & need better documentation.
+
+The sentiment analysis needs to be accurate. Words like "waste" and "disappointment"
+should be classified as negative. While "revolutionary" and "mind-blowing" are positive.
+URLs, hashtags like #tech, and usernames like @apple support are just noise.
+
+This text is a good example of unstructured data. Proper tokenization, lowercasing,
+and stopword removal are essential steps. We also need to normalize words like
+"disappointment!!!" into "disappointment."
+
+© 2025 Tech Insights. All rights reserved.
